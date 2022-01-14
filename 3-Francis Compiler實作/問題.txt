@@ -1,0 +1,26 @@
+c.請說明程式中table5的做法
+A:table5為identifier table，當在切tokens階段時，切到id的token就依據該id的hash值，
+  插入至identifier table內，此時identifier table另外三個欄位是空的。
+  進入文法分析階段，檢查該文法是否為定義該id，若為定義該id，則先檢查其另外三個
+  欄位是否為空，若是表示未定義，可以定義；若否則代表重複定義，要報錯。
+  檢查完後依據定義情況填入適當的欄位至該id，例如: Subroutine、Type、Pointer
+  若該文法為使用到該id，則利用id及Subroutine值作為key，檢查table5中是否有相同的，
+  無則代表未定義id，要報錯。
+
+e.程式架構如何寫的
+A:我的程式共有以下這些類別
+  1.TableManager-儲存七個table的資訊，整合七個tables的操作介面
+  2.Lexer-將原始碼解析為Token
+  3.Parser-檢查一串Tokens是否為正確文法
+  4.Generator-將正確文法Tokens，做對應處理，產生中間碼
+  5.Compiler-負責將原始碼編譯成中間碼，整合TableManager、Lexer、Parser、Generator為一個操作介面
+  6.ProcessManager-整合整個Compiler，提供使用者輸入、輸出的介面
+  最開始由ProcessManager與使用者互動，決定讀入的檔案，並完成讀取、存原始碼工作，
+  讀完檔案後將原始碼丟進Compiler，讓其利用TableManager、Lexer、Parser、Generator
+  四個元件完成編譯工作。
+  Compiler流程大致為Lexer每次從原始碼切出一段Token序列(以分號Token做結尾)，
+  Parser分析這段Token序列符合哪種文法，一旦分析出符合某種文法，Parser便將關鍵
+  的Token(比如運算元、運算子Token)丟給Generator，讓Generator產生出對應的中間碼，
+  以及對應的Table處理，結束後控制權會回到Parser，Parser再將控制權還給Lexer，
+  Lexer繼續讀下一段Token序列，重複上述流程，直到整份原始碼被分析完成為止。
+  分析完畢後，Compiler將控制權還給ProcessManager，由ProcessManager來輸出中間碼。

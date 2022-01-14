@@ -1,0 +1,195 @@
+一、開發環境
+作業系統：Window 10
+程式語言：C++11
+編譯器：MinGW
+IDE：Code::Blocks 17.12
+實作程式：Francis Compiler
+
+
+二、程式設計
+將原始碼(source code)經過詞法、文法分析後翻譯成中間碼(Intermediate Code)。
+中間碼為四元組形式(Quadruple Form)
+Input: 原始碼
+Output: 中間碼
+
+功能:
+1.處理PROGRAM, SUBROUTINE定義，分別以ENP, ENS作結尾
+2.處理VARIABLE, LABEL, DIMENSION(陣列)定義
+3.處理CALL, GTO跳轉敘述，支援Forward reference
+4.處理assignment，指派運算式給變數
+5.處理IF敘述，支援條件中多個邏輯運算子的運算式
+6.處理INPUT, OUTPUT
+7.允許陣列內使用運算式，但不會檢查是否超出定義範圍
+8.運算式支援括號及五則運算，運算子分別為+, -, *, /, ^
+9.判斷原始碼文法是否正確，如錯誤，會顯示錯誤原始碼行數
+10.檢查是否存在重複定義、未定義的variable, label, array, 或function name
+11.檢查陣列使用時其維度是否正確
+
+資料結構:
+1.Delimiter Table與Reserved Word Table
+  為固定大小陣列，初始化時讀入內容，提供以index或key查詢功能
+2.Integer Table與Real Number Table
+  為可變動大小陣列容器，內容不重複，提供插入、以index或key查詢功能
+3.Identifier Table
+  為Hash Table，預設大小為100，採用字串Ascii code總和mod 100為Hash Function，
+  共四個欄位，分別為Identifier、Subroutine、Type、Pointer，key為Identifier，
+  提供插入、修改index特定欄位、以index或key查詢功能
+4.Quadruple Table
+  為可變動大小陣列容器，共四個欄位，分別為四個table及entry的pair，
+  分別代表Quadruple Form的四個欄位，提供插入、填入欄位、查詢下一個插入位置的功能
+5.Information Table
+  為可變動大小陣列容器，內容為整數，像stack不斷堆疊，提供插入功能
+
+類別:
+TableManager-儲存七個table的資訊，整合七個tables的操作介面
+Lexer-將原始碼解析為Token
+Parser-檢查一串Tokens是否為正確文法
+Generator-將正確文法Tokens，做對應處理，產生中間碼
+Compiler-負責將原始碼編譯成中間碼，整合TableManager、Lexer、Parser、Generator為一個操作介面
+ProcessManager-整合整個Compiler，提供使用者輸入、輸出的介面
+
+流程:
+1.Lexical Analysis
+  i.  原始碼是否有字元?
+      是->go to ii.
+      否->結束
+  ii. 讀取一字元存入buffer，直到讀到分隔符號或空白
+  iii.檢查buffer是否與Delimiter Table或Reserved Word Table內容配對
+      是->視為一個token
+      否->go to iv.
+  iv. 檢查其是否為Integer或Real
+      是->視為interger token或real token
+      否->go to v.
+  v.  檢查其是否符合identifier規範
+      是->視為identifier token
+      否->詞法錯誤
+  vi. 此Token是否為分號
+      是->先前解析的Tokens做文法分析
+      否->go to i.
+2.Syntax Analysis and Generate Intermediate Code
+  i.  將Tokens與以下文法比對
+      <standard syntax>:=<program heading>|<subroutine heading>|
+                         <variable declaration part>|
+                         <array declaration part>|
+                         <label declaration part>|
+                         <statement part>
+      <statement part>:=<unlabeled statement>;|<identifier><unlabeled statement>;
+      <unlabeled statement>:=<statement I>|<if statement>
+  ii. 若發現文法無法吻合，則紀錄行數及錯誤訊息，跳過這段程式，繼續翻譯下段
+  iii.若發現文法吻合，則檢查是否有重複定義、未定義之錯誤，若有，則同步驟ii.；
+      若無，則依照要求將必要資訊填入表格，並產生出中間碼插入至Quadruple Table
+  iv. 重掃一遍Quadruple Table，檢查運算子為GTO的中間碼，將第四欄修改為正確地址，
+  Statement:
+  1.PROGRAM
+    文法:<program heading>:=PROGRAM<identifier>;
+         <identifier>:=<letter>|_{<letter>|<digit>|_}
+         <letter>:=a|b|c|...|z|A|B|C|...|Z
+         <digit>:=0|1|2|...|9
+    處理:(1)插入至Identifier Table
+         (2)填入pointer欄位，對應Quadruple Table下一個欲擺放的中間碼位置
+    注意:keep一個整數state為Identifier Table的entry，以方便後續identifier填入Subroutine欄位，
+         也方便檢查現在是否處於某個function中，遇到ENP時state初始化。整份原始碼分析完時，
+         state必須為初始化狀態，否則即代表缺少ENP或ENS。
+  2.VARIABLE
+    文法:<variable declaration part>:=VARIABLE<variable declaration>;
+         <variable declaration>:=<type>:<identifier>{,<identifier>}
+         <type>:=INTEGER|REAL|BOOLEAN
+    處理:(1)插入至Identifier Table
+         (2)填入Subroutine、Type欄位(Type為integer、real、或boolean)
+         (3)產生中間碼，格式(id, , , )
+         (4)填入Pointer欄位，對應其在Quadruple Table的entry
+    檢查:identifier是否重複定義
+  3.DIMENSION
+    文法:<array declaration part>:=DIMENSION<array declaration>;
+         <array declaration>:=<type>:<subscripted variable>{,<subscripted variable>}
+         <subscripted variable>:=<identifier>(<unsigned integer>{,<unsigned integer>})
+         <unsigned integer>:=<digit>{<digit>}
+    處理:(1)插入至Identifier Table
+         (2)填入Subroutine、Type欄位(Type為array)
+         (3)紀錄陣列資訊至Information Table，假設為N維陣列，則其紀錄資訊為:
+            陣列型別、維度N、第1維大小、第2維大小、...、第N維大小
+         (4)填入Pointer欄位，對應其資訊在Information Table的起始位置
+         (5)產生中間碼，格式(id, , , )
+    檢查:identifier是否重複定義
+  4.LABEL
+    文法:<label declaration part>:=LABEL<identifier>{,<identifier>};
+    處理:(1)插入至Identifier Table
+         (2)填入Subroutine、Type欄位(Type為label)
+         (3)填入Pointer欄位，對應其實際goto時翻譯成的中間碼位置(Quadruple Table的entry)，
+            但由於在定義時尚未知道其實際goto到的位置，因此需要Forward reference
+         (4)產生中間碼，格式(id, , , )
+    檢查:identifier是否重複定義
+  5.GTO
+    文法:<go to statement>:=GTO<identifier>
+    處理:(1)產生中間碼，格式(GTO, , ,quad)，
+            quad為實際goto到的statement翻譯成的中間碼位置，可能需要Forward reference
+    檢查:identifier是否有定義
+    注意:第一次Pass時，先將GTO中間碼第四欄填成其label定義的中間碼位置，
+         待第二次Pass時，再將其中間碼第四欄改成真正欲執行的中間碼位置
+  6.SUBROUTINE
+    文法:<subroutine heading>:=SUBROUTINE<identifier>(<variable declaration>{,<variable declaration>});
+    處理:(1)插入至Identifier Table
+         (2)填入pointer欄位，對應Quadruple Table下一個欲擺放的中間碼位置
+         (3)處理參數宣告(同variable宣告)
+    檢查:identifier是否重複定義
+    注意:同PROGRAM注意事項
+  7.CALL
+    文法:<call statement>:=CALL<identifier>(<argument>{,<argument>})
+         <argument>:=<identifier>|<constant>
+         <constant>:=<unsigned number>|<sign><unsigned number>
+         <unsigned number>:=<unsigned integer>|<unsigned real>
+    處理:(1)紀錄參數資訊至Information Table，假設共M個參數，則其紀錄資訊為:
+            參數個數M、第1個參數table、第1個參數entry、第2個參數table、第2個參數entry、
+            ...、第M個參數table、第M個參數entry        
+         (2)產生中間碼，格式(CALL,id, ,inf)，
+            inf為其資訊在Information Table的起始位置
+         (3)假設欲呼叫
+    檢查:identifier是否有定義
+  8.assignment
+    文法:<assign statement>:=<variable>=<expression>
+         <expression>:=<term>{<adding operator><term>}|<sign><term>{<adding operator><term>}
+         <adding operator>:=+|-
+         <term>:=<factor>{<multiplying operator><factor>}
+         <multiplying operator>:=*|/
+         <factor>:=<variable>{^<factor>}|<unsigned number>{^<factor>}|(<expression>){^<factor>}
+         <variable>:=<identifier>|<array element>
+         <array element>:=<idnetifier>(<expression>{,<expression>})
+    處理:(1)產生中間碼，格式如下
+            (=,Y, ,X), X = Y
+            (=,A,I,X), X = A(I)
+            (=,X,A,I), A(I) = X
+         (2)運算過程中皆可能產生中間碼，例如: R = C(A+B);
+            (+, A, B,T1) T1 = A+B
+            (=, C,T1,T2) T2 = C(T1)
+            (=,T2,  , R) R = T2
+    檢查:identifier是否有定義、陣列維度是否正確
+    注意:遇到-X或+X這種expression時，需要自動產生T=0-X或T=0+X的中間碼
+  9.IF
+    文法:<if statement>:=IF<condition>THEN<statement I>{ELSE<statement I>}
+         <condition>:=<condition variable>{<relations><condition variable>}
+         <condition variable>:=<variable>|<constant>
+         <relations>:=<relational operator>|OR|AND
+         <relational operator>:=EQ|NE|GT|GE|LT|LE
+         <statement I>:=<assign statement>|<call statement>|<go to statement>|<IO statement>|<empty statement>
+    處理:(1)產生condition中間碼
+         (2)產生if中間碼，格式(if,cond,quad1,quad2)
+            cond為condition運算結果，quad1、quad2為if條件成立及不成立時，
+            分別欲執行的中間碼位置，此處需要Forward reference
+         (3)產生必要的goto中間碼，以使得若if條件成立，執行完程式碼後，可跳過else的中間碼區塊
+    注意:若condition僅有一個variable時，自動產生VAR NE 0的中間碼
+  10.INPUT/OUTPUT
+    文法:<IO statement>:=INPUT<variable>|OUTPUT<variable>
+    處理:(1)產生中間碼，格式(INPUT, , ,id)
+  11.ENP/ENS
+    利用一個變數，紀錄state，初始化為-1，當讀到函式開頭時(PROGRAM或SUBROUTINE)，
+    更新該state變數為該函式id存放於Identifier Table的entry值，當讀到ENP,ENS時，
+    檢查該state是否為非0，若是則初始化該state，若否則報錯，跳過該行
+  12.label
+    當讀到程式碼前綴的label時，檢查該label是否已定義，若尚未定義，則記錄錯誤資訊；
+    若已定義，則向前回填其位址於Identifier Table內定義其的Pointer欄位
+3.Output Intermediate Code
+  輸出Quadruple Table內容，並附上行數、中間碼、原始碼，行末附上錯誤訊息及錯誤原始碼行數
+
+
+三、未完成功能
+1.IF的condition加上括號運算
