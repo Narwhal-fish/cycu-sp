@@ -1,0 +1,36 @@
+	SUBROUTINE S1(INTEGER:X,
+                      INTEGER:Y,REAL:M);
+	VARIABLE BOOLEAN: bool1, bool2, a, b;
+	LABEL L91, L92, L93;
+	GTO L91;
+	a = 8.0;
+	bool1 = bool2 + a ^ (8/4-9);
+	b = b-1;
+L91	INPUT a;
+	a = a*5;
+L92	;
+L93	ENS;
+
+	PROGRAM Main;
+	VARIABLE INTEGER: a;
+	VARIABLE INTEGER: c;
+	CALL S1(1, c, 0.58 - a);
+	CALL S2(c);
+	ENP;
+
+	SUBROUTINE S2(REAL:P);
+	VARIABLE INTEGER: a;
+	VARIABLE INTEGER: Main;
+	LABEL HELLO, begin;
+	DIMENSION REAL: X(7,8);
+begin	a = 56 ^ 3;
+	INPUT a;
+	OUTPUT X(2,1);
+	a = a + 1;
+	X(4,a^5) = X(7,1)*9/(-4)^a;
+	OUTPUT Main;
+HELLO	GTO HELLO;
+	GTO begin;
+	ENS;
+	
+

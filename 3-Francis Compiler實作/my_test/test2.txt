@@ -1,0 +1,6 @@
+	PROGRAM main;
+	VARIABLE INTEGER: x, y;
+	DIMENSION REAL: X(7, 9, 5);
+	VARIABLE INTEGER : z;
+	x = x-0.5*x/(-8)^(7)-(3^(3*5/4^(-y+x)+5));
+	ENP;

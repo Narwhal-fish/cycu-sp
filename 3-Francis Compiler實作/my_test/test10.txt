@@ -1,0 +1,42 @@
+	SUBROUTINE MY_SUB(INTEGER:X,XX
+                          ,Y,REAL:M,BOOLEAN:__NNN);
+	VARIABLE INTEGER: bool1, bool2;
+	VARIABLE BOOLEAN: a, b;
+	LABEL QQQQ, WWWW, RDRD;
+	DIMENSION INTEGER: xx(79, 20), xxx(5,5, 5);
+	DIMENSION BOOLEAN: ___array___(45,3,6,9,8,7,1,2);
+	GTO RDRD;
+	a = __NNN ^ (__NNN - M / 5);
+	bool1 = bool2 + a ^ (8/4-9);
+	b = b-1;
+	IF b GT bool1 LE 3.14159 NE xx(1, 4^b) THEN CALL S2(___array___(1,2,3,4,5,6,7,8), ___array___(1,2,3,4,5,60,7,8) ^ (-7));
+QQQQ	INPUT a;
+	a = a*5;
+WWWW	;
+RDRD	ENS;
+
+	PROGRAM Main;
+	VARIABLE INTEGER: a;
+	VARIABLE INTEGER: c;
+	DIMENSION BOOLEAN: ___array___(45,3,6,9,8,7,1,2);
+	CALL MY_SUB(1, c, c^a^5, 0.58 - a, ___array___(c^a^5, ___array___(1,1,1,1,1,1,1,1), c, -a, -0.569, 9, 10, 100));
+	IF a EQ c - 64 THEN a = a + 1 ELSE
+CALL S2(c);
+		CALL MY_SUB(1,2,3,0.5,2^(+9*3));
+	ENP;
+
+	SUBROUTINE S2(REAL:P,LLL);
+	VARIABLE INTEGER: a;
+	VARIABLE INTEGER: Main;
+	LABEL HELLO, begin;
+	DIMENSION REAL: X(7,8);
+begin	a = 56 ^ 3;
+	INPUT a;
+	OUTPUT X(2,1);
+	a = a + 1;
+	X(4,a^5) = X(7,1)*9/(-4)^a;
+	OUTPUT Main;
+HELLO	GTO HELLO;
+	GTO begin;
+	ENS;
+	

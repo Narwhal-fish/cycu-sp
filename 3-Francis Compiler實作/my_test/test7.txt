@@ -1,0 +1,5 @@
+	PROGRAM A2;
+	DIMENSION INTEGER: x(10);
+	VARIABLE INTEGER: a, b, c;
+	IF c EQ a - 5 THEN x(c) = 6 + a ^ c ELSE a = a + 1;
+	ENP;

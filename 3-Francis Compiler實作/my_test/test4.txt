@@ -1,0 +1,10 @@
+	PROGRAM A2;
+	VARIABLE INTEGER:I,J,K ;
+	DIMENSION REAL: X(7, 9, 8);
+        K = X(1,2,3);
+	J = K + 1;
+	INPuT J;
+	output K;
+	OutpUt X(5,7,8);
+	X(1,2,3) = K;
+	ENP;

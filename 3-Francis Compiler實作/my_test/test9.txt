@@ -1,0 +1,16 @@
+PROGRAM			JJJJJJJJJJ
+;	
+	VARIABLE 
+INTEGER: i, j
+                           ,k
+
+;;;LABEL tttt, ag1234; IF i
+			EQ		80
+
+GT
+
+	j THEN	k=k/0.864 ELSE    k
+=20-79.8
+;
+DIMENSION BOOLEAN:
+R(15,6,100);		ENP;
