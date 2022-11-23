@@ -1,0 +1,9 @@
+pseudo instruction
+start
+end
+byte
+word
+resb
+equ
+base
+ltorg

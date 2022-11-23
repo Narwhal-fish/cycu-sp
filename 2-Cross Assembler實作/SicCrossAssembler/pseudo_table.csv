@@ -1,0 +1,7 @@
+pseudo instruction
+start
+end
+byte
+word
+resb
+resw
